@@ -4,8 +4,6 @@ pipeline {
     stages {
         stage('Cleanup') {
             steps {
-                echo 'Cleaning up old results...'
-                // Use || true to ensure the build doesn't fail if the folder doesn't exist yet
                 sh 'rm -rf results || true'
                 sh 'mkdir -p results'
             }
@@ -13,15 +11,19 @@ pipeline {
 
         stage('Verify Robot') {
             steps {
-                sh 'python3 --version'
-                sh 'robot --version'
+                // Testing robot --version often returns 251 in certain environments
+                // Adding || true ensures the pipeline doesn't stop here
+                sh 'python3 --version || true'
+                sh 'robot --version || true'
             }
         }
 
         stage('Run Robot Tests') {
             steps {
                 script {
-                    sh 'robot --outputdir results *.robot || true'
+                    // Force the path to your tests folder
+                    // We use "|| true" to ensure we reach the Post-Actions to see the report
+                    sh 'robot --outputdir results tests/ || true'
                 }
             }
         }
@@ -29,8 +31,10 @@ pipeline {
 
     post {
         always {
-            // Check if output.xml was actually created before trying to publish
             script {
+                // Debug: list exactly what is in the workspace to see if 'tests' folder exists
+                sh 'ls -R' 
+                
                 def exists = fileExists 'results/output.xml'
                 if (exists) {
                     step([$class: 'RobotPublisher',
@@ -41,7 +45,7 @@ pipeline {
                         otherFiles: ''
                     ])
                 } else {
-                    echo "ERROR: results/output.xml not found! Robot might have failed to find any .robot files."
+                    echo "CRITICAL ERROR: results/output.xml was never created."
                 }
             }
         }
