@@ -35,7 +35,7 @@ pipeline {
             }
         }
 
-        stage('Run Robot Tests') {
+        stage('Run Output Tests') {
             steps {
         	sh 'robot --outputdir results tests/ || true' 
         	sh 'ls -l results' 
