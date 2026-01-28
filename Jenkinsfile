@@ -34,6 +34,13 @@ pipeline {
                 """
             }
         }
+
+        stage('Run Robot Tests') {
+            steps {
+        	sh 'robot --outputdir results tests/ || true' 
+        	sh 'ls -l results' 
+    	    }
+	}
     }
 
     post {
