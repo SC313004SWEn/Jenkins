@@ -23,6 +23,13 @@ pipeline {
             }
         }
 
+        stage('Prepare') {
+    	    steps {
+        	sh 'mkdir -p results'
+        	sh 'chmod 777 results' // Allows the Docker container user to write here
+    	    }
+	}
+
         stage('Run Robot Tests') {
             steps {
                 sh """
@@ -34,13 +41,6 @@ pipeline {
                 """
             }
         }
-
-        stage('Run Output Tests') {
-            steps {
-        	sh 'robot --outputdir results tests/ || true' 
-        	sh 'ls -l results' 
-    	    }
-	}
     }
 
     post {
